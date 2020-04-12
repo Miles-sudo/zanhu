@@ -1,14 +1,69 @@
+#!/usr/bin/python3
+# -*- coding:utf-8 -*-
+# __author__ = "__Miles__"
+
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField
+from django.db import models
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
 
+# from django.utils.translation import ugettext_lazy as _ 自动生成的弃用
 
+# 使项目适应不同环境，python2.x 向python3 一样处理各种unicode字符
+@python_2_unicode_compatible
 class User(AbstractUser):
+    '''
+    自定义邮箱模型
+    '''
+    nickname = models.CharField(null=True, blank=True, max_length=255, verbose_name='昵称')
+    job_title = models.CharField(max_length=50, null=True, blank=True, verbose_name='职称')
+    introduction = models.TextField(blank=True, null=True, verbose_name='简介')
+    picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True, verbose_name='头像')
+    location = models.CharField(max_length=50, null=True, blank=True, verbose_name='城市')
+    personal_url = models.URLField(max_length=555, blank=True, null=True, verbose_name='个人链接')
+    weibo = models.URLField(max_length=255, blank=True, null=True, verbose_name='微博链接')
+    zhihu = models.URLField(max_length=255, blank=True, null=True, verbose_name='知乎链接')
+    github = models.URLField(max_length=255, blank=True, null=True, verbose_name='Github链接')
+    linkedin = models.URLField(max_length=255, blank=True, null=True, verbose_name='LinkedIn链接')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 
-    # First Name and Last Name do not cover name patterns
-    # around the globe.
-    name = CharField(_("Name of User"), blank=True, max_length=255)
+    class Meta:
+        # 定义表名字 和复数形式名字
+        verbose_name = "用户"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        # 为AbstractUser 中内置定义的  是唯一键
+        return self.username
 
     def get_absolute_url(self):
+        # 框架自动生成 用于返回用户详情页中的路径
         return reverse("users:detail", kwargs={"username": self.username})
+
+    def get_profile_name(self):
+        # 用于个人信息中返回用户的名字
+        if self.nickname:
+            return self.nickname
+        return self.username
+
+'''
+django3.0+ 下
+使项目适应不同环境，python2.x 向python3 一样处理各种unicode字符
+由from django.utils.encoding import python_2_unicode_compatible
+
+改变为
+from six import python_2_unicode_compatible
+
+但是迁移数据库报错: cannot import name 'six' from 'django.utils'
+尝试查看问题： pipenv shell -> python3 -> import six 无法导入
+pipenv install six --skip-lock
+pipenv shell -> python3 -> import six 导入成功
+
+再次迁移数据库依旧报错，搜索报错，解决方案：
+进入python3.6/site-packages
+将six.py 复制到 django/utils即可
+
+但是由于haystack，sorl.thumbnail 依旧拥有原来代码，所以需要大量调整，重新用回Django2.2.8
+'''
