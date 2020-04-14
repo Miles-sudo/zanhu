@@ -41,6 +41,7 @@ $(function () {
 
     // Focus on the modal input by default.
     $('#newsFormModal').on('shown.bs.modal', function () {
+        // trigger() 方法触发被选元素的指定事件类型。focus聚焦
         $('#newsInput').trigger('focus')
     });
 
@@ -58,7 +59,9 @@ $(function () {
             type: 'POST',
             cache: false,
             success: function (data) {
+                // 在 ul.stream 元素的开头插入内容
                 $("ul.stream").prepend(data);
+                // val() 方法返回或设置被选元素的 value 属性
                 $("#newsInput").val("");
                 $("#newsFormModal").modal("hide");
                 hide_stream_update();
