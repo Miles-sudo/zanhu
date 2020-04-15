@@ -64,7 +64,7 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
     # "django.contrib.admin",  # 暂时不开启后台系统
-    "django.forms",
+    "django.forms",     # 可以用于 django内置的weget模板
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -74,21 +74,25 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.github",  # 集成github第三方登录
     "django_celery_beat",
     # 手动添加的模块
-    "sorl.thumbnail",
-    "taggit",
+    "sorl.thumbnail",  # 头像压缩
+    "taggit", # 标签
     "markdownx",
-    "django_comments",
+    "django_comments", # 第三方评论
     # "haystack",
-    "djcelery_email",
+    "djcelery_email", # 异步发送邮件
 ]
 
 LOCAL_APPS = [
     "zanhu.users.apps.UsersConfig",
     # Your stuff: custom apps go here
     "zanhu.news.apps.NewsConfig",
+    "zanhu.articles.apps.ArticlesConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# 更改组件查找模板的顺序,先查找自定义模板 再查找系统定义模板
+FROM_RENDERER='django.forms.renderers.TemplatesSetting'
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------

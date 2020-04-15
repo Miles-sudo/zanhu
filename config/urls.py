@@ -18,9 +18,12 @@ urlpatterns = [
                   path("accounts/", include("allauth.urls")),
 
                   # Your stuff: custom urls includes go here
+                  # 第三方应用
+                  path('markdownx/', include('markdownx.urls')),
 
                   # 开发的应用
                   path('news/', include('zanhu.news.urls', namespace='news')),
+                  path("articles/", include("zanhu.articles.urls", namespace="articles")),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
