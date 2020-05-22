@@ -58,6 +58,7 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 # ------------------------------------------------------------------------------
 
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-eager-propagates
-CELERY_TASK_EAGER_PROPAGATES = True
+# CELERY_TASK_EAGER_PROPAGATES = True  # True为 不异步执行
+CELERY_TASK_EAGER_PROPAGATES = False  # True为 不异步执行
 # Your stuff...
 # ------------------------------------------------------------------------------

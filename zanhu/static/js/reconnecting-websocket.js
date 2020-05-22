@@ -1,4 +1,5 @@
 // MIT License:
+// websocket 断开重连js
 //
 // Copyright (c) 2010-2012, Joe Walnes
 //

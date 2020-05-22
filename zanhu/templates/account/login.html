@@ -8,33 +8,29 @@
 
 {% block inner %}
 
-  <h1>{% trans "Sign In" %}</h1>
+    <h1>{% trans "Sign In" %}</h1>
 
-  <form class="login" method="POST" action="{% url 'account_login' %}">
-    {% csrf_token %}
-    {{ form|crispy }}
-    {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-    {% endif %}
-    <a class="button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-    <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
 
-    {# 更改原有样式 #}
-    <div class="float-right">
-{#   获取base.py中集成的第三方登录功能  #}
-{#   get_providers 为 {% load account socialaccount %} 引入后的模板，socialaccount.py中定义的get_providers()函数 #}
-      {% get_providers as socialaccount_providers %}
-      {% if socialaccount_providers %}
-        <div class="socialaccount_ballot">
-          <ul class="socialaccount_providers">
-            {#   include为django-allauth自带文件         #}
-            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-          </ul>
+    <form class="login" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        {{ form|crispy }}
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+        {% endif %}
+        <a class="button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+        <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
+        <a class="primaryAction btn btn-primary" href="{{ signup_url }}">{% trans "Sign Up" %}</a>
+        <div class="float-right">
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
+                <div class="socialaccount_ballot">
+                    <ul class="socialaccount_providers">
+                        {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                    </ul>
+                </div>
+                {% include "socialaccount/snippets/login_extra.html" %}
+            {% endif %}
         </div>
-        {% include "socialaccount/snippets/login_extra.html" %}
-      {% endif %}
-    </div>
-
-  </form>
+    </form>
 
 {% endblock %}

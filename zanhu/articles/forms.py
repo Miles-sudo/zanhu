@@ -17,9 +17,10 @@ class ArticleForm(form.Form):
      。。。。
 '''
 
+
 class ArticleForm(forms.ModelForm):
     # widget=forms.HiddenInput() 对用户不可见
-    title = forms.CharField(widget=forms.HiddenInput())
+    status = forms.CharField(widget=forms.HiddenInput())
     # initial = False 初始值 |  required=False 不要求填写
     edited = forms.BooleanField(widget=forms.HiddenInput(), initial=False, required=False)
     content = MarkdownxFormField()

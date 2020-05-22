@@ -16,7 +16,7 @@ from django.views.decorators.cache import cache_page
 
 from zanhu.articles.models import Article
 from zanhu.articles.forms import ArticleForm
-
+from zanhu.notifications.views import notification_handler
 
 # django信号机制
 # 为触发模式request_started 请求开始时触发 request_finished请求结束后触发
@@ -87,13 +87,13 @@ class ArticleDetailView(LoginRequiredMixin, DetailView):
         return Article.objects.select_related('user').filter(slug=self.kwargs['slug'])
 
 
-class ArticleEditView(LoginRequiredMixin, AuthorRequiredMixin, UpdateView):
+class EditArticleView(LoginRequiredMixin, AuthorRequiredMixin, UpdateView):
     """编辑文章"""
     model = Article
-    template_name = "articles/article_update.html"
     # 关联到用户需要填写的表单
     form_class = ArticleForm
     message = "文章编辑成功"
+    template_name = "articles/article_update.html"
 
     # 自动填充给标题栏 填充ok
     # initial = {"title": "ok"}
@@ -101,12 +101,12 @@ class ArticleEditView(LoginRequiredMixin, AuthorRequiredMixin, UpdateView):
     def form_valid(self, form):
         """编辑验证"""
         form.instance.user = self.request.user
-        return super(ArticleEditView, self).form_valid(form)
+        return super(EditArticleView, self).form_valid(form)
 
     def get_success_url(self):
         """编辑成功, 跳转链接"""
         messages.success(self.request, self.message)
-        return reverse("articles:article", kwargs={"slug": self.get_object().slug})
+        return reverse("articles:list")
 
     # 自动填充逻辑 适用于发表规律性内容
     # def get_initial(self):
@@ -114,3 +114,16 @@ class ArticleEditView(LoginRequiredMixin, AuthorRequiredMixin, UpdateView):
     #     # 填充逻辑
     #     return initial
 
+
+# 10章 实现文章通知
+def notify_comment(**kwargs):
+    """文章有评论时通知作者"""
+    # kwargs['request'].user django-comments 传递的参数
+    actor = kwargs['request'].user
+    # kwargs['comment']获取 django-comments  实例  content_object通用外键 关联到其他类
+    obj = kwargs['comment'].content_object
+
+    notification_handler(actor, obj.user, 'C', obj)
+
+# django-comments 信号处理  receiver = 信号目标
+comment_was_posted.connect(receiver=notify_comment)

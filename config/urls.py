@@ -20,10 +20,15 @@ urlpatterns = [
                   # Your stuff: custom urls includes go here
                   # 第三方应用
                   path('markdownx/', include('markdownx.urls')),
+                  path('comments/', include('django_comments.urls')),
+                  path('search/', include('haystack.urls')),
 
                   # 开发的应用
                   path('news/', include('zanhu.news.urls', namespace='news')),
                   path("articles/", include("zanhu.articles.urls", namespace="articles")),
+                  path("qa/", include("zanhu.qa.urls", namespace="qa")),
+                  path("messager/", include("zanhu.messager.urls", namespace="messager")),
+                  path('notifications/', include('zanhu.notifications.urls', namespace='notifications')),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -9,7 +9,12 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
 from django.db import models
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from zanhu.users.models import User
+from zanhu.notifications.views import notification_handler
+
 
 # Create your models here.
 
@@ -45,15 +50,31 @@ class News(models.Model):
         # 返回用户发表的内容
         return self.content
 
+    # 回过头来开发 用户更新消息 提醒其他用户
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        super(News, self).save()
+        if not self.reply:
+            channel_layer = get_channel_layer()
+            payload = {
+                "type": "receive",
+                "key": "additional_news",
+                # 动作执行者 为该动态用户
+                "actor_name": self.user.username
+            }
+            async_to_sync(channel_layer.group_send)('notifications', payload)
+
     def switch_like(self, user):
         '''点赞或取消赞'''
         # 赞过则取消
         # liked多对多外键字段 直接.all() 获取获取数据
-        if user in self.liked.all(): # self.liked 多对多外键，通过外键查询关联表User的多条记录 相当于User.object.all()
+        if user in self.liked.all():  # self.liked 多对多外键，通过外键查询关联表User的多条记录 相当于User.object.all()
             self.liked.remove(user)
         # 未赞 则点赞
         else:
             self.liked.add(user)
+            # 添加赞时通知 楼主
+            notification_handler(user, self.user, 'L', self, id_value=str(self.uuid_id), key="social_update")
 
     def get_parent(self):
         '''返回自关联中的上级记录或者本身'''
@@ -77,6 +98,8 @@ class News(models.Model):
             reply=True,
             parent=parent
         )
+        # 通知楼主
+        notification_handler(user, parent.user, 'R', parent, id_value=str(parent.uuid_id), key='social_update')
 
     def get_thread(self):
         '''关联到当前记录的所有记录'''

@@ -41,7 +41,7 @@ class UserDetailView(LoginRequiredMixin, DetailView):
                              blank=True, null=True, related_name="%(class)s_comments",
                              on_delete=models.SET_NULL)
         """
-        # 文章品论数 + 动态评论数
+        # 文章品论数 + 动态评论数 user.comment_comments 为源码中Comment 关联到User的外键
         context["comment_num"] = user.publisher.filter(reply=True).count() + user.comment_comments.count()
 
         # 提问数量
@@ -100,12 +100,12 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
 
 user_update_view = UserUpdateView.as_view()
 
-# class UserRedirectView(LoginRequiredMixin, RedirectView):
-#
-#     permanent = False
-#
-#     def get_redirect_url(self):
-#         return reverse("users:detail", kwargs={"username": self.request.user.username})
-#
-#
-# user_redirect_view = UserRedirectView.as_view()
+class UserRedirectView(LoginRequiredMixin, RedirectView):
+
+    permanent = False
+
+    def get_redirect_url(self):
+        return reverse("users:detail", kwargs={"username": self.request.user.username})
+
+
+user_redirect_view = UserRedirectView.as_view()

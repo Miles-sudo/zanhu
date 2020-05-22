@@ -14,7 +14,7 @@ urlpatterns = [
     path('drafts/', views.DraftListView.as_view(), name='drafts'),
     # 调用ArticleDetailView时 缓存5分钟
     # path("<str:slug>/", views.ArticleDetailView.as_view(), name="article"),
-    path("<str:slug>/", cache_page(60 * 5)(views.ArticleDetailView.as_view()), name="article"),
-    path("edit/<int:pk>/", views.ArticleEditView.as_view(), name="edit_article"),
+    path("<str:slug>/", views.ArticleDetailView.as_view(), name="article"),
+    path("edit/<int:pk>/", views.EditArticleView.as_view(), name="edit_article"),
 ]
 

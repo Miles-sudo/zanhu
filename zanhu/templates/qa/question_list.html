@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}问答 - {{ block.super }}{% endblock %}
+
+{% block css %}
+  <link href="{% static 'css/qa.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block content %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'news:list' %}">首页</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><a href="{% url 'qa:unanswered_q' %}">问答</a></li>
+    </ol>
+  </nav>
+
+  <div class="card my-4">
+    <h5 class="card-header">按话题分类
+      <a href="{% url 'qa:ask_question' %}" class="btn-sm btn-primary pull-right">
+        <i class="fa fa-pencil" aria-hidden="true"></i> 提问
+      </a>
+    </h5>
+    <div class="card-body">
+      {% for tag, count in popular_tags %}
+        <a href="#"><span class="badge badge-info">{{ count }} {{ tag }}</span></a>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link{% if active == 'unanswered' %} active{% endif %}" href="{% url 'qa:unanswered_q' %}">
+          等待回答
+        </a>
+
+        {# 自己添加删除问题按钮 #}
+{#        <div class="post">#}
+{#          <!--自己发送的动态显示删除按钮-->#}
+{#          <!--渲染此模板使，request 也被渲染进模板所以能调用request.user.username来查询当前请求用户 -->#}
+{#          {% if request.user.username == questions.user.username %}#}
+{#            <a href="{% url 'questions:delete_questions' questions.pk %}">#}
+{#              <i class="fa fa-times pull-right" aria-hidden="true" title="点击删除这条问题"></i>#}
+{#            </a>#}
+{#          {% endif %}#}
+{#          <p>#}
+{#            <strong>#}
+{#              <a href="{% url 'users:detail' questions.user.username %}">{{ questions.user.get_profile_name }}</a>#}
+{#            </strong>#}
+{#          </p>#}
+{#          <p>{{ questions }}</p>#}
+{#        </div>#}
+
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{% if active == 'answered' %} active{% endif %}" href="{% url 'qa:answered_q' %}">
+          已有回答
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{% if active == 'all' %} active{% endif %}" href="{% url 'qa:all_q' %}">
+          全部问答
+        </a>
+
+      </li>
+    </ul>
+    {% for question in questions %}
+      {% include 'qa/question_sample.html' with question=question %}
+      {% empty %}
+      <h4 class="no-data">没有要显示的问题</h4>
+    {% endfor %}
+    {% include 'pagination.html' %}
+  </div>
+
+{% endblock content %}
+
+
+{% block js %}
+  <script src="{% static 'js/qa.js' %}"></script>
+{% endblock js %}

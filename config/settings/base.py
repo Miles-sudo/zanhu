@@ -64,9 +64,10 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
     # "django.contrib.admin",  # 暂时不开启后台系统
-    "django.forms",     # 可以用于 django内置的weget模板
+    "django.forms",  # 可以用于 django内置的weget模板
 ]
 THIRD_PARTY_APPS = [
+    "channels",  # channles 服务
     "crispy_forms",
     "allauth",
     "allauth.account",
@@ -75,11 +76,11 @@ THIRD_PARTY_APPS = [
     "django_celery_beat",
     # 手动添加的模块
     "sorl.thumbnail",  # 头像压缩
-    "taggit", # 标签
+    "taggit",  # 标签
     "markdownx",
-    "django_comments", # 第三方评论
-    # "haystack",
-    "djcelery_email", # 异步发送邮件
+    "django_comments",  # 第三方评论
+    "haystack",
+    "djcelery_email",  # 异步发送邮件
 ]
 
 LOCAL_APPS = [
@@ -87,12 +88,16 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     "zanhu.news.apps.NewsConfig",
     "zanhu.articles.apps.ArticlesConfig",
+    "zanhu.qa.apps.QaConfig",
+    "zanhu.messager.apps.MessagerConfig",
+    'zanhu.notifications.apps.NotificationsConfig',
+    'zanhu.search.apps.SearchConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # 更改组件查找模板的顺序,先查找自定义模板 再查找系统定义模板
-FROM_RENDERER='django.forms.renderers.TemplatesSetting'
+FROM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -112,7 +117,7 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 # 指定登陆后重定向页面
-LOGIN_REDIRECT_URL = "users:redirect"
+LOGIN_REDIRECT_URL = "articles:list"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 # 指定登录页面
 LOGIN_URL = "account_login"
@@ -223,7 +228,8 @@ FIXTURE_DIRS = (str(APPS_DIR / "fixtures"),)
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-httponly
 SESSION_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-httponly
-CSRF_COOKIE_HTTPONLY = False  # 是否只允许http 来获取CSFR token，后续会使用JS来获取CSRF token 所以设置为False
+# 如果使用cookiecutter 生成模板时 使用https则 该选项为True
+CSRF_COOKIE_HTTPONLY = False  # 是否只允许http 来获取CSFR token，后续会使用JS代码来获取CSRF token 所以设置为False(默认为False)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-browser-xss-filter
 SECURE_BROWSER_XSS_FILTER = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
@@ -311,7 +317,7 @@ ACCOUNT_AUTHENTICATION_METHOD = "username"  # 登录验证-用户名 ，也可�
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # 是否验证邮件，强制验证 ，none(不验证) /optional(可选)不点确认连接不影响登录
+ACCOUNT_EMAIL_VERIFICATION = "none"  # 是否验证邮件，强制验证 ，none(不验证) /optional(可选)不点确认连接不影响登录
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "zanhu.users.adapters.AccountAdapter"  # users 中定义的适配器
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -324,3 +330,39 @@ STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# Markdown相关设置 https://neutronx.github.io/django-markdownx/customization/#settings
+MARKDOWNX_UPLOAD_MAX_SIZE = 5 * 1024 * 1024  # 允许上传的最大图片大小为5MB
+MARKDOWNX_IMAGE_MAX_SIZE = {'size': (1000, 1000), 'quality': 100}  # 图片最大为1000*1000, 不压缩
+
+# ASGI server setup
+ASGI_APPLICATION = 'config.routing.application'
+
+# channles 频道层缓存
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            # 更改数据库连接地址 改为.env 文件中定义的REDIS_URL
+            # "hosts": [("redis-server-name", 6379)],
+
+            # CHANNEL_LAYERS缓存 默认为redis数据库3,由于不能直接使用/3  使用f 标记转换为字符串
+            "hosts": [f'{env("REDIS_URL", default="redis://127.0.0.1:6379")}/3'],
+        },
+    },
+}
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        # 使用的Elasticsearch搜索引擎
+        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
+        # Elasticsearch连接的地址
+        'URL': 'http://127.0.0.1:9200/',
+        # 默认的索引名
+        'INDEX_NAME': 'zanhu',
+    }
+}
+
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 20  # 对搜索结果分页
+# 实时信号量处理器，模型类中数据增加、更新、删除时自动更新索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

@@ -9,7 +9,7 @@ $(function () {
     // AJAX POST发送消息
     $("#send").submit(function () {
         $.ajax({
-            url: '/messages/send-message/',
+            url: '/messager/send-message/',
             data: $("#send").serialize(),
             cache: false,
             type: 'POST',
@@ -24,11 +24,14 @@ $(function () {
 
     // WebSocket连接，使用wss(https)或者ws(http)
     const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+    // currentUser 在base.html 中定义的当前用户 并传递
     const ws_path = ws_scheme + "://" + window.location.host + "/ws/" + currentUser + "/";
+    // ws 断开重连 由前端加载的 函数Reconnecting-WebSocket.js
     const ws = new ReconnectingWebSocket(ws_path);
     // 监听后端发送过来的消息
     ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
+        // sender 为后端 后端发送来的数据  activeUser 为 message_list中 定义的 js activeUser == {{ active }}
         if (data.sender === activeUser) {  // 发送者为当前选中的用户
             $(".send-message").before(data.message); // 将接收到的消息插入到聊天框
             scrollConversationScreen();  // 滚动条下拉到底
